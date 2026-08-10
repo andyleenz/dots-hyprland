@@ -19,15 +19,36 @@ Singleton {
         return "battery_android_0";
     }
 
+    // Desktop-entry actions carry themed icon names, not Material Symbols, and
+    // actions without an Icon key inherit the parent entry's icon (e.g.
+    // "co.anysphere.cursor"). Anything that isn't a known Material Symbol name
+    // would render as literal text in the symbol font, so fall back to a
+    // generic bullet instead of passing the name through.
+    readonly property string desktopActionFallbackSymbol: "chevron_right"
+
+    readonly property var desktopActionSymbolMap: ({
+        "vscode": "code",
+        "code": "code",
+        "application-exit": "exit_to_app",
+        "window-new": "open_in_new",
+        "document-new": "note_add",
+        "list-add": "add",
+        "media-playback-start": "play_arrow",
+        "media-playback-pause": "pause",
+        "media-skip-forward": "skip_next",
+        "media-skip-backward": "skip_previous",
+        "view-private": "visibility_off",
+        "user-trash": "delete",
+        "preferences-system": "settings",
+        "help-about": "info"
+    })
+
     function getDesktopActionMaterialSymbol(icon: string): string {
-        // Some apps ship custom icon names in their desktop-entry actions
-        // (e.g. VS Code uses "vscode", Telegram uses non-Material names).
-        // Map known cases to Material Symbols; fall through unchanged otherwise.
-        switch (icon) {
-            case "vscode": return "code";
-            case "application-exit": return "exit_to_app";
-        }
-        return icon;
+        if (!icon) return root.desktopActionFallbackSymbol;
+        const mapped = root.desktopActionSymbolMap[icon];
+        // Whitelist only: any unmapped name is a themed icon name
+        // ("firefox", "co.anysphere.cursor", "/path/to.png"), never a ligature.
+        return mapped ?? root.desktopActionFallbackSymbol;
     }
 
     function getBluetoothDeviceMaterialSymbol(systemIconName: string): string {
